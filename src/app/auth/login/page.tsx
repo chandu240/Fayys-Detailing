@@ -14,18 +14,23 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    console.log('Auth result:', JSON.stringify(data), error)
     if (error) { toast.error(error.message); setLoading(false); return }
     if (data.session) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', data.session.user.id)
         .single()
+      console.log('Profile result:', JSON.stringify(profile), profileError)
       if (profile?.role === 'admin') {
         window.location.href = '/admin'
       } else {
         window.location.href = '/dashboard'
       }
+    } else {
+      console.log('No session returned')
+      setLoading(false)
     }
   }
 
@@ -44,8 +49,7 @@ export default function LoginPage() {
         </div>
         <div className="bg-brand-50 rounded-lg p-3 mb-5 text-xs text-brand-800 leading-relaxed">
           <span className="font-medium">Payment on file (optional)</span> — We use a saved card
-          to automate membership billing and approved appointment charges. You can add one during
-          signup or anytime in your profile.
+          to automate membership billing and approved appointment charges.
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
