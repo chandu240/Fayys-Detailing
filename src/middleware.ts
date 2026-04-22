@@ -26,7 +26,12 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
 
-  if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register')) {
+  if (
+    pathname.startsWith('/auth/login') ||
+    pathname.startsWith('/auth/register') ||
+    pathname.startsWith('/verify') ||
+    pathname.startsWith('/api')
+  ) {
     return response
   }
 
@@ -43,5 +48,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
