@@ -27,13 +27,29 @@ export default function AdminRequestsPage() {
   async function updateStatus(id: string, status: string) {
     const { error } = await supabase.from('bookings').update({ status }).eq('id', id)
     if (error) { toast.error(error.message); return }
-    toast.success(status === 'approved' ? 'Approved! Verification email sent.' : 'Request declined.')
+    if (status === 'approved') {
+      const res = await fetch('/api/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: id })
+      })
+      if (res.ok) toast.success('Approved! Verification email sent.')
+      else toast.success('Approved! (Email sending failed — check Resend config)')
+    } else {
+      toast.success('Request declined.')
+    }
     fetchBookings()
   }
 
   const statusClass: Record<string, string> = {
     pending: 'badge-pending', approved: 'badge-approved',
     declined: 'badge-declined', completed: 'badge-completed',
+  }
+
+  const paymentLabel: Record<string, string> = {
+    unpaid: 'Unpaid',
+    paid: 'Paid by card',
+    refunded: 'Refunded',
   }
 
   return (
@@ -71,6 +87,11 @@ export default function AdminRequestsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{b.profiles?.first_name} {b.profiles?.last_name}</span>
                     <span className={`badge ${statusClass[b.status]}`}>{b.status}</span>
+                    {b.status === 'approved' && (
+                      <span className={`badge ${b.email_verified ? 'badge-approved' : 'badge-pending'}`}>
+                        {b.email_verified ? 'Verified' : 'Awaiting verification'}
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {format(new Date(b.slot_date), 'MMM d, yyyy')} · {formatTime(b.slot_time)} · {b.service}
@@ -78,7 +99,17 @@ export default function AdminRequestsPage() {
                   </div>
                   {b.profiles?.phone && <div className="text-xs text-gray-400 mt-0.5">{b.profiles.phone}</div>}
                   {b.notes && <div className="text-xs text-gray-400 mt-0.5 italic">"{b.notes}"</div>}
-                  {b.amount_cents && <div className="text-xs text-gray-500 mt-0.5">${(b.amount_cents/100).toFixed(0)}</div>}
+                  <div className="flex items-center gap-3 mt-1.5">
+                    {b.amount_cents && <span className="text-xs text-gray-500">${(b.amount_cents/100).toFixed(0)}</span>}
+                    {b.status === 'approved' && (
+                      <span className={`text-xs font-medium ${
+                        b.payment_status === 'paid' ? 'text-green-600' :
+                        b.notes?.includes('CASH') ? 'text-amber-600' : 'text-gray-400'
+                      }`}>
+                        {b.notes?.includes('CASH') ? 'Paying by cash' : paymentLabel[b.payment_status] || 'Unpaid'}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {b.status === 'pending' && (
                   <div className="flex gap-2 flex-shrink-0">
