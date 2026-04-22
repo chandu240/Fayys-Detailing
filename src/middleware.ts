@@ -22,13 +22,23 @@ export async function middleware(request: NextRequest) {
       },
     }
   )
+
   const { data: { session } } = await supabase.auth.getSession()
   const { pathname } = request.nextUrl
-  if (pathname.startsWith('/auth')) {
-    if (session) return NextResponse.redirect(new URL('/', request.url))
+
+  if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/register')) {
     return response
   }
-  if (!session) return NextResponse.redirect(new URL('/auth/login', request.url))
+
+  if (pathname.startsWith('/auth')) {
+    if (session) return NextResponse.redirect(new URL('/dashboard', request.url))
+    return response
+  }
+
+  if (!session) {
+    return NextResponse.redirect(new URL('/auth/login', request.url))
+  }
+
   return response
 }
 
