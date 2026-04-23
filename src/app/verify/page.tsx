@@ -1,26 +1,26 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
-export default function VerifyPage() {
+function VerifyRedirect() {
   const params = useSearchParams()
   const bookingId = params.get('bookingId')
-  const supabase = createClient()
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (bookingId) {
-      supabase.from('bookings').select('id').eq('id', bookingId).single().then(() => {
-        window.location.href = '/dashboard/requests'
-        setLoading(false)
-      })
-    }
+    window.location.href = '/dashboard/requests'
   }, [bookingId])
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="text-gray-400 text-sm">{loading ? 'Redirecting...' : 'Done'}</p>
+      <p className="text-gray-400 text-sm">Redirecting...</p>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p className="text-gray-400 text-sm">Loading...</p></div>}>
+      <VerifyRedirect />
+    </Suspense>
   )
 }
