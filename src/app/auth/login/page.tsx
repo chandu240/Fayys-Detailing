@@ -14,61 +14,43 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    console.log('Auth result:', JSON.stringify(data), error)
     if (error) { toast.error(error.message); setLoading(false); return }
     if (data.session) {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.session.user.id)
-        .single()
-      console.log('Profile result:', JSON.stringify(profile), profileError)
-      if (profile?.role === 'admin') {
-        window.location.href = '/admin'
-      } else {
-        window.location.href = '/dashboard'
-      }
-    } else {
-      console.log('No session returned')
-      setLoading(false)
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.session.user.id).single()
+      window.location.href = profile?.role === 'admin' ? '/admin' : '/dashboard'
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 w-full max-w-sm shadow-sm">
-        <div className="text-center mb-7">
-          <div className="w-11 h-11 bg-brand-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3"/>
-              <rect x="9" y="11" width="14" height="10" rx="2"/>
-            </svg>
-          </div>
-          <h1 className="text-lg font-semibold">Fayy's Detailing</h1>
-          <p className="text-sm text-gray-500 mt-1">Schedule your next detail</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0A0A0A', padding: '28px' }}>
+      <div style={{ background: '#111', border: '1px solid #1E1E1E', borderTop: '2px solid #C9A84C', borderRadius: '2px', padding: '44px', width: '100%', maxWidth: '400px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '28px', fontWeight: 600, color: '#F0EDE8', letterSpacing: '0.05em' }}>Fayy's Detailing</div>
+          <div style={{ fontSize: '10px', color: '#8A7A5A', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>Premier Automotive Care</div>
+          <div style={{ width: '32px', height: '1px', background: '#C9A84C', margin: '12px auto 0' }}></div>
         </div>
-        <div className="bg-brand-50 rounded-lg p-3 mb-5 text-xs text-brand-800 leading-relaxed">
-          <span className="font-medium">Payment on file (optional)</span> — We use a saved card
-          to automate membership billing and approved appointment charges.
+
+        <div style={{ background: '#C9A84C0D', border: '1px solid #C9A84C22', borderRadius: '2px', padding: '10px 14px', fontSize: '11px', color: '#8A7A5A', lineHeight: 1.6, marginBottom: '20px' }}>
+          <span style={{ color: '#C9A84C' }}>Payment on file</span> — We use a saved card to automate billing and appointment charges. Optional at signup.
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '14px' }}>
             <label className="label">Email address</label>
-            <input className="input" type="email" required value={email}
-              onChange={e => setEmail(e.target.value)} placeholder="you@email.com" />
+            <input className="input" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" />
           </div>
-          <div>
+          <div style={{ marginBottom: '20px' }}>
             <label className="label">Password</label>
-            <input className="input" type="password" required value={password}
-              onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+            <input className="input" type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 mt-5">
-          Don't have an account?{' '}
-          <Link href="/auth/register" className="text-brand-600 font-medium">Sign up</Link>
+
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#444', marginTop: '20px' }}>
+          No account?{' '}
+          <Link href="/auth/register" style={{ color: '#C9A84C', textDecoration: 'none' }}>Create one</Link>
         </p>
       </div>
     </div>
